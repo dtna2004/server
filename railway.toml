@@ -1,0 +1,15 @@
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "node server.js"
+healthcheckPath = "/"
+healthcheckTimeout = 100
+
+[[headers]]
+path = "/*"
+  [headers.values]
+  Access-Control-Allow-Origin = "https://xaxn.netlify.app"
+  Access-Control-Allow-Methods = "GET,POST,PUT,DELETE,OPTIONS"
+  Access-Control-Allow-Headers = "Content-Type,Authorization"
+  Access-Control-Allow-Credentials = "true"

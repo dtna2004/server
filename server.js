@@ -10,18 +10,27 @@ dotenv.config();
 const app = express();
 const server = http.createServer(app);
 
-// Cấu hình CORS
+// Thêm middleware CORS trước khi định nghĩa routes
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', 'https://xaxn.netlify.app');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+    next();
+});
+
 app.use(cors({
-    origin: ['https://xaxn.netlify.app', 'http://localhost:5500'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    origin: 'https://xaxn.netlify.app',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-    preflightContinue: true,
-    optionsSuccessStatus: 204
+    credentials: true
 }));
 
-// Thêm middleware để xử lý OPTIONS request
-app.options('*', cors());
+// Đảm bảo express.json() được gọi trước routes
+app.use(express.json());
 
 // Cấu hình Socket.IO
 const io = socketIO(server, {
@@ -31,8 +40,6 @@ const io = socketIO(server, {
         credentials: true
     }
 });
-
-app.use(express.json());
 
 // Import routes
 const authRoutes = require('./routes/auth');
