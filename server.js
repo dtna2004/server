@@ -15,8 +15,13 @@ app.use(cors({
     origin: ['https://xaxn.netlify.app', 'http://localhost:5500'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true
+    credentials: true,
+    preflightContinue: true,
+    optionsSuccessStatus: 204
 }));
+
+// Thêm middleware để xử lý OPTIONS request
+app.options('*', cors());
 
 // Cấu hình Socket.IO
 const io = socketIO(server, {
@@ -73,3 +78,8 @@ mongoose.connect(process.env.MONGODB_URI, {
     console.error('MongoDB connection error:', err);
     process.exit(1);
 }); 
+// Thêm vào cuối server.js
+app.use((err, req, res, next) => {
+  console.error('Global error:', err);
+  res.status(500).json({ message: 'Lỗi server', error: err.message });
+});
