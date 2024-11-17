@@ -10,35 +10,23 @@ dotenv.config();
 const app = express();
 const server = http.createServer(app);
 
-// Thêm middleware CORS trước khi định nghĩa routes
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', 'https://xaxn.netlify.app');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end();
-    }
-    next();
-});
-
+// Cấu hình CORS
 app.use(cors({
-    origin: 'https://xaxn.netlify.app',
+    origin: ['https://xaxn.netlify.app'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
 }));
 
-// Cấu hình Socket.IO với CORS
+// Cấu hình Socket.IO
 const io = socketIO(server, {
     cors: {
-        origin: 'https://xaxn.netlify.app',
+        origin: ['https://xaxn.netlify.app'],
         methods: ["GET", "POST"],
         credentials: true
     }
 });
 
-// Đảm bảo express.json() được gọi trước routes
 app.use(express.json());
 
 // Import routes
@@ -65,26 +53,19 @@ app.get('/', (req, res) => {
     res.send('Server is running');
 });
 
-// Database connection với options
-mongoose.connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    serverSelectionTimeoutMS: 5000,
-    socketTimeoutMS: 45000,
-    family: 4
-})
-.then(() => {
-    console.log('Connected to MongoDB');
-    // Chỉ start server sau khi đã kết nối database thành công
-    const PORT = process.env.PORT || 3000;
-    server.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
+// Database connection
+mongoose.connect(process.env.MONGODB_URI)
+    .then(() => {
+        console.log('Connected to MongoDB');
+        const PORT = process.env.PORT || 3000;
+        server.listen(PORT, () => {
+            console.log(`Server running on port ${PORT}`);
+        });
+    })
+    .catch(err => {
+        console.error('MongoDB connection error:', err);
+        process.exit(1);
     });
-})
-.catch(err => {
-    console.error('MongoDB connection error:', err);
-    process.exit(1);
-});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
