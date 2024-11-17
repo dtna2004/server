@@ -10,23 +10,36 @@ dotenv.config();
 const app = express();
 const server = http.createServer(app);
 
-// Cấu hình CORS
+// Middleware để log requests
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.url}`, {
+        headers: req.headers,
+        body: req.body
+    });
+    next();
+});
+
+// CORS middleware
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', 'https://xaxn.netlify.app');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+    next();
+});
+
 app.use(cors({
-    origin: ['https://xaxn.netlify.app'],
+    origin: 'https://xaxn.netlify.app',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
 }));
 
-// Cấu hình Socket.IO với CORS
-const io = socketIO(server, {
-    cors: {
-        origin: ['https://xaxn.netlify.app'],
-        methods: ["GET", "POST"],
-        credentials: true
-    }
-});
-
+// Parse JSON bodies
 app.use(express.json());
 
 // Import routes
@@ -37,6 +50,11 @@ const messageRoutes = require('./routes/message');
 const matchingRoutes = require('./routes/matching');
 const videoCallRoutes = require('./routes/videoCall');
 
+// Test route
+app.get('/', (req, res) => {
+    res.json({ message: 'Server is running' });
+});
+
 // Use routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -45,12 +63,22 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/matching', matchingRoutes);
 app.use('/api/video-call', videoCallRoutes);
 
+// Socket.IO setup
+const io = socketIO(server, {
+    cors: {
+        origin: 'https://xaxn.netlify.app',
+        methods: ["GET", "POST"],
+        credentials: true
+    }
+});
+
 // Socket.io connection handling
 require('./socket/videoCall')(io);
 
-// Test route
-app.get('/', (req, res) => {
-    res.send('Server is running');
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error('Error:', err);
+    res.status(500).json({ message: 'Lỗi server', error: err.message });
 });
 
 // Database connection
@@ -66,9 +94,3 @@ mongoose.connect(process.env.MONGODB_URI)
         console.error('MongoDB connection error:', err);
         process.exit(1);
     });
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-    console.error('Global error:', err);
-    res.status(500).json({ message: 'Lỗi server', error: err.message });
-});
