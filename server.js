@@ -6,21 +6,22 @@ const http = require('http');
 const socketIO = require('socket.io');
 
 dotenv.config();
+
 const app = express();
 const server = http.createServer(app);
 
 // Cấu hình CORS
 app.use(cors({
-    origin: ['http://127.0.0.1:5500', 'http://localhost:5500'],
+    origin: ['https://xaxn.netlify.app', 'http://localhost:5500'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
 }));
 
-// Cấu hình Socket.IO với CORS
+// Cấu hình Socket.IO
 const io = socketIO(server, {
     cors: {
-        origin: ['http://127.0.0.1:5500', 'http://localhost:5500'],
+        origin: ['https://xaxn.netlify.app', 'http://localhost:5500'],
         methods: ["GET", "POST"],
         credentials: true
     }
@@ -47,10 +48,18 @@ app.use('/api/video-call', videoCallRoutes);
 // Socket.io connection handling
 require('./socket/videoCall')(io);
 
+// Test route
+app.get('/', (req, res) => {
+    res.send('Server is running');
+});
+
 // Database connection
 mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('Connected to MongoDB'))
-    .catch(err => console.error('MongoDB connection error:', err));
+    .catch(err => {
+        console.error('MongoDB connection error:', err);
+        process.exit(1);
+    });
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {

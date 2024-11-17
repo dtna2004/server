@@ -4,10 +4,12 @@ const jwt = require('jsonwebtoken');
 
 exports.register = async (req, res) => {
   try {
+    console.log('Register request received:', req.body);
     const { email, password } = req.body;
     
     const existingUser = await User.findOne({ email });
     if (existingUser) {
+      console.log('Email already exists:', email);
       return res.status(400).json({ message: 'Email đã tồn tại' });
     }
 
@@ -19,6 +21,7 @@ exports.register = async (req, res) => {
     });
 
     await user.save();
+    console.log('New user created:', user._id);
     
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
     res.status(201).json({ token, userId: user._id });
