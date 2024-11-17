@@ -21,7 +21,17 @@ app.use((req, res, next) => {
 
 // CORS middleware
 app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', 'https://xaxn.netlify.app');
+    const allowedOrigins = [
+        'https://xaxn.netlify.app',
+        'http://127.0.0.1:5500',
+        'http://localhost:5500'
+    ];
+    
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin)) {
+        res.header('Access-Control-Allow-Origin', origin);
+    }
+
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
     res.header('Access-Control-Allow-Credentials', 'true');
@@ -33,7 +43,19 @@ app.use((req, res, next) => {
 });
 
 app.use(cors({
-    origin: 'https://xaxn.netlify.app',
+    origin: function (origin, callback) {
+        const allowedOrigins = [
+            'https://xaxn.netlify.app',
+            'http://127.0.0.1:5500',
+            'http://localhost:5500'
+        ];
+        
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
