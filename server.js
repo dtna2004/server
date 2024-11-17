@@ -18,7 +18,7 @@ app.use(cors({
     credentials: true
 }));
 
-// Cấu hình Socket.IO
+// Cấu hình Socket.IO với CORS
 const io = socketIO(server, {
     cors: {
         origin: ['https://xaxn.netlify.app'],
