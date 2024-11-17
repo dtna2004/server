@@ -78,6 +78,7 @@ mongoose.connect(process.env.MONGODB_URI, {
     console.error('MongoDB connection error:', err);
     process.exit(1);
 }); 
+
 // Thêm vào cuối server.js
 app.use((err, req, res, next) => {
   console.error('Global error:', err);
