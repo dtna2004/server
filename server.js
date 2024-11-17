@@ -29,17 +29,17 @@ app.use(cors({
     credentials: true
 }));
 
-// Đảm bảo express.json() được gọi trước routes
-app.use(express.json());
-
-// Cấu hình Socket.IO
+// Cấu hình Socket.IO với CORS
 const io = socketIO(server, {
     cors: {
-        origin: ['https://xaxn.netlify.app', 'http://localhost:5500'],
+        origin: 'https://xaxn.netlify.app',
         methods: ["GET", "POST"],
         credentials: true
     }
 });
+
+// Đảm bảo express.json() được gọi trước routes
+app.use(express.json());
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -69,9 +69,9 @@ app.get('/', (req, res) => {
 mongoose.connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    serverSelectionTimeoutMS: 5000, // Timeout sau 5 giây
-    socketTimeoutMS: 45000, // Timeout sau 45 giây
-    family: 4 // Sử dụng IPv4
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+    family: 4
 })
 .then(() => {
     console.log('Connected to MongoDB');
@@ -84,10 +84,10 @@ mongoose.connect(process.env.MONGODB_URI, {
 .catch(err => {
     console.error('MongoDB connection error:', err);
     process.exit(1);
-}); 
+});
 
-// Thêm vào cuối server.js
+// Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('Global error:', err);
-  res.status(500).json({ message: 'Lỗi server', error: err.message });
+    console.error('Global error:', err);
+    res.status(500).json({ message: 'Lỗi server', error: err.message });
 });
