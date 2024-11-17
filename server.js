@@ -53,15 +53,23 @@ app.get('/', (req, res) => {
     res.send('Server is running');
 });
 
-// Database connection
-mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log('Connected to MongoDB'))
-    .catch(err => {
-        console.error('MongoDB connection error:', err);
-        process.exit(1);
+// Database connection với options
+mongoose.connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 5000, // Timeout sau 5 giây
+    socketTimeoutMS: 45000, // Timeout sau 45 giây
+    family: 4 // Sử dụng IPv4
+})
+.then(() => {
+    console.log('Connected to MongoDB');
+    // Chỉ start server sau khi đã kết nối database thành công
+    const PORT = process.env.PORT || 3000;
+    server.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
     });
-
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+})
+.catch(err => {
+    console.error('MongoDB connection error:', err);
+    process.exit(1);
 }); 
